@@ -20,9 +20,9 @@ logging.basicConfig(level=logging.DEBUG)
 def create_sample_candidates():
     if Candidate.query.count() == 0:
         sample_candidates = [
-            Candidate(name="John Doe", bio="Experienced software developer", contact="john@example.com", photo="https://via.placeholder.com/150?text=John+Doe"),
-            Candidate(name="Jane Smith", bio="Marketing specialist", contact="jane@example.com", photo="https://via.placeholder.com/150?text=Jane+Smith"),
-            Candidate(name="Bob Johnson", bio="Project manager", contact="bob@example.com", photo="https://via.placeholder.com/150?text=Bob+Johnson"),
+            Candidate(name="John Doe", bio="Experienced software developer", contact="john@example.com", photo="john_doe.jpg"),
+            Candidate(name="Jane Smith", bio="Marketing specialist", contact="jane@example.com", photo="jane_smith.jpg"),
+            Candidate(name="Bob Johnson", bio="Project manager", contact="bob@example.com", photo="bob_johnson.jpg"),
         ]
         db.session.add_all(sample_candidates)
         db.session.commit()
@@ -82,43 +82,22 @@ def candidate(id):
     ratings_counter = Counter(ratings)
     ratings_data = [ratings_counter[i] for i in range(1, 6)]
     
-    return render_template('candidate.html', candidate=candidate, ratings_data=ratings_data)
-
-@app.route('/api/search')
-def api_search():
-    query = request.args.get('q', '')
-    candidates = Candidate.query.filter(Candidate.name.ilike(f'%{query}%')).all()
-    return jsonify([{
-        'id': c.id,
-        'name': c.name,
-        'photo': c.photo,
-        'rating': c.average_rating,
-        'review_count': len(c.reviews)
-    } for c in candidates])
+    # Order reviews by date in descending order
+    sorted_reviews = Review.query.filter_by(candidate_id=id).order_by(Review.created_at.desc()).all()
+    
+    return render_template('candidate.html', candidate=candidate, ratings_data=ratings_data, reviews=sorted_reviews)
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        logging.debug(f"Login attempt for username: {username}")
-        logging.debug(f"Provided password: {password}")
-        
         admin = Admin.query.filter_by(username=username).first()
-        if admin:
-            logging.debug("Admin user found in database")
-            logging.debug(f"Stored password hash: {admin.password}")
-            if check_password_hash(admin.password, password):
-                logging.debug("Password check successful")
-                session['admin_id'] = admin.id
-                flash('Logged in successfully.', 'success')
-                return redirect(url_for('admin_dashboard'))
-            else:
-                logging.debug("Password check failed")
-                flash('Invalid username or password.', 'error')
-        else:
-            logging.debug("Admin user not found in database")
-            flash('Invalid username or password.', 'error')
+        if admin and check_password_hash(admin.password, password):
+            session['admin_id'] = admin.id
+            flash('Logged in successfully.', 'success')
+            return redirect(url_for('admin_dashboard'))
+        flash('Invalid username or password.', 'error')
     return render_template('admin/login.html')
 
 @app.route('/admin/logout')
