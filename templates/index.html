@@ -10,7 +10,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="candidates-container">
     {% for candidate in candidates.items %}
     <div class="bg-white p-6 rounded-lg shadow-md">
-        <img src="{{ candidate.photo }}" alt="{{ candidate.name }}" class="w-full h-48 object-cover mb-4 rounded">
+        <img src="{{ url_for('static', filename='img/' + candidate.photo) }}" alt="{{ candidate.name }}" class="w-full h-48 object-cover mb-4 rounded">
         <h2 class="text-xl font-semibold mb-2">{{ candidate.name }}</h2>
         <div class="flex items-center mb-2">
             <div class="text-yellow-400 mr-2">
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(candidates => {
                     candidatesContainer.innerHTML = candidates.map(candidate => `
                         <div class="bg-white p-6 rounded-lg shadow-md">
-                            <img src="${candidate.photo}" alt="${candidate.name}" class="w-full h-48 object-cover mb-4 rounded">
+                            <img src="/static/img/${candidate.photo}" alt="${candidate.name}" class="w-full h-48 object-cover mb-4 rounded">
                             <h2 class="text-xl font-semibold mb-2">${candidate.name}</h2>
                             <div class="flex items-center mb-2">
                                 <div class="text-yellow-400 mr-2">
