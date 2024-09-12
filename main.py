@@ -6,6 +6,7 @@ import os
 from models import db, Candidate, Review, Admin
 from config import Config
 from utils import allowed_file, paginate
+from collections import Counter
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -15,9 +16,9 @@ db.init_app(app)
 def create_sample_candidates():
     if Candidate.query.count() == 0:
         sample_candidates = [
-            Candidate(name="John Doe", bio="Experienced software developer", contact="john@example.com", photo="john.jpg"),
-            Candidate(name="Jane Smith", bio="Marketing specialist", contact="jane@example.com", photo="jane.jpg"),
-            Candidate(name="Bob Johnson", bio="Project manager", contact="bob@example.com", photo="bob.jpg"),
+            Candidate(name="John Doe", bio="Experienced software developer", contact="john@example.com", photo="https://via.placeholder.com/150?text=John+Doe"),
+            Candidate(name="Jane Smith", bio="Marketing specialist", contact="jane@example.com", photo="https://via.placeholder.com/150?text=Jane+Smith"),
+            Candidate(name="Bob Johnson", bio="Project manager", contact="bob@example.com", photo="https://via.placeholder.com/150?text=Bob+Johnson"),
         ]
         db.session.add_all(sample_candidates)
         db.session.commit()
@@ -48,7 +49,13 @@ def candidate(id):
             flash('Your review has been submitted!', 'success')
         else:
             flash('Invalid rating. Please rate between 1 and 5.', 'error')
-    return render_template('candidate.html', candidate=candidate)
+    
+    # Calculate ratings distribution
+    ratings = [review.rating for review in candidate.reviews]
+    ratings_counter = Counter(ratings)
+    ratings_data = [ratings_counter[i] for i in range(1, 6)]
+    
+    return render_template('candidate.html', candidate=candidate, ratings_data=ratings_data)
 
 @app.route('/api/search')
 def api_search():
@@ -57,7 +64,7 @@ def api_search():
     return jsonify([{
         'id': c.id,
         'name': c.name,
-        'photo': url_for('static', filename=f'img/{c.photo}'),
+        'photo': c.photo,
         'rating': c.average_rating,
         'review_count': len(c.reviews)
     } for c in candidates])
