@@ -8,11 +8,14 @@ from config import Config
 from utils import allowed_file, paginate
 from collections import Counter
 from functools import wraps
+import logging
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
+
+logging.basicConfig(level=logging.DEBUG)
 
 def create_sample_candidates():
     if Candidate.query.count() == 0:
@@ -29,6 +32,13 @@ def create_admin_user():
         admin = Admin(username="admin", password=generate_password_hash("admin123"))
         db.session.add(admin)
         db.session.commit()
+        logging.debug(f"Admin user created with username: {admin.username}")
+        logging.debug(f"Admin password hash: {admin.password}")
+    else:
+        logging.debug("Admin user already exists")
+        admin = Admin.query.filter_by(username="admin").first()
+        logging.debug(f"Existing admin user: {admin.username}")
+        logging.debug(f"Existing admin password hash: {admin.password}")
 
 with app.app_context():
     db.create_all()
@@ -91,12 +101,23 @@ def admin_login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        logging.debug(f"Login attempt for username: {username}")
+        logging.debug(f"Provided password: {password}")
+        
         admin = Admin.query.filter_by(username=username).first()
-        if admin and check_password_hash(admin.password, password):
-            session['admin_id'] = admin.id
-            flash('Logged in successfully.', 'success')
-            return redirect(url_for('admin_dashboard'))
+        if admin:
+            logging.debug("Admin user found in database")
+            logging.debug(f"Stored password hash: {admin.password}")
+            if check_password_hash(admin.password, password):
+                logging.debug("Password check successful")
+                session['admin_id'] = admin.id
+                flash('Logged in successfully.', 'success')
+                return redirect(url_for('admin_dashboard'))
+            else:
+                logging.debug("Password check failed")
+                flash('Invalid username or password.', 'error')
         else:
+            logging.debug("Admin user not found in database")
             flash('Invalid username or password.', 'error')
     return render_template('admin/login.html')
 
