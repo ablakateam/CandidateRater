@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Edit Candidate</h1>
+    
+    <form action="{{ url_for('admin_edit_candidate', id=candidate.id) }}" method="POST" enctype="multipart/form-data" class="max-w-lg">
+        <div class="mb-4">
+            <label for="name" class="block text-gray-700 font-bold mb-2">Name</label>
+            <input type="text" id="name" name="name" value="{{ candidate.name }}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>
+        </div>
+        <div class="mb-4">
+            <label for="bio" class="block text-gray-700 font-bold mb-2">Bio</label>
+            <textarea id="bio" name="bio" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>{{ candidate.bio }}</textarea>
+        </div>
+        <div class="mb-4">
+            <label for="contact" class="block text-gray-700 font-bold mb-2">Contact</label>
+            <input type="text" id="contact" name="contact" value="{{ candidate.contact }}" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>
+        </div>
+        <div class="mb-4">
+            <label for="photo" class="block text-gray-700 font-bold mb-2">Photo</label>
+            <input type="file" id="photo" name="photo" accept="image/*" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+            <p class="text-sm text-gray-600 mt-1">Current photo: {{ candidate.photo }}</p>
+        </div>
+        <div>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Update Candidate</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

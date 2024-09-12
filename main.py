@@ -7,6 +7,7 @@ from models import db, Candidate, Review, Admin
 from config import Config
 from utils import allowed_file, paginate
 from collections import Counter
+from functools import wraps
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -23,9 +24,25 @@ def create_sample_candidates():
         db.session.add_all(sample_candidates)
         db.session.commit()
 
+def create_admin_user():
+    if Admin.query.count() == 0:
+        admin = Admin(username="admin", password=generate_password_hash("admin123"))
+        db.session.add(admin)
+        db.session.commit()
+
 with app.app_context():
     db.create_all()
     create_sample_candidates()
+    create_admin_user()
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_id' not in session:
+            flash('Please log in to access this page.', 'error')
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 def index():
@@ -68,6 +85,89 @@ def api_search():
         'rating': c.average_rating,
         'review_count': len(c.reviews)
     } for c in candidates])
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        admin = Admin.query.filter_by(username=username).first()
+        if admin and check_password_hash(admin.password, password):
+            session['admin_id'] = admin.id
+            flash('Logged in successfully.', 'success')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Invalid username or password.', 'error')
+    return render_template('admin/login.html')
+
+@app.route('/admin/logout')
+@admin_required
+def admin_logout():
+    session.pop('admin_id', None)
+    flash('Logged out successfully.', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
+    candidates = Candidate.query.all()
+    return render_template('admin/dashboard.html', candidates=candidates)
+
+@app.route('/admin/candidate/add', methods=['GET', 'POST'])
+@admin_required
+def admin_add_candidate():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        bio = request.form.get('bio')
+        contact = request.form.get('contact')
+        photo = request.files.get('photo')
+        
+        if name and bio and contact and photo and allowed_file(photo.filename):
+            filename = secure_filename(photo.filename)
+            photo_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            photo.save(photo_path)
+            
+            new_candidate = Candidate(name=name, bio=bio, contact=contact, photo=filename)
+            db.session.add(new_candidate)
+            db.session.commit()
+            
+            flash('Candidate added successfully.', 'success')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Please fill in all fields and upload a valid image.', 'error')
+    
+    return render_template('admin/add_candidate.html')
+
+@app.route('/admin/candidate/edit/<int:id>', methods=['GET', 'POST'])
+@admin_required
+def admin_edit_candidate(id):
+    candidate = Candidate.query.get_or_404(id)
+    if request.method == 'POST':
+        candidate.name = request.form.get('name')
+        candidate.bio = request.form.get('bio')
+        candidate.contact = request.form.get('contact')
+        
+        photo = request.files.get('photo')
+        if photo and allowed_file(photo.filename):
+            filename = secure_filename(photo.filename)
+            photo_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            photo.save(photo_path)
+            candidate.photo = filename
+        
+        db.session.commit()
+        flash('Candidate updated successfully.', 'success')
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('admin/edit_candidate.html', candidate=candidate)
+
+@app.route('/admin/candidate/delete/<int:id>', methods=['POST'])
+@admin_required
+def admin_delete_candidate(id):
+    candidate = Candidate.query.get_or_404(id)
+    db.session.delete(candidate)
+    db.session.commit()
+    flash('Candidate deleted successfully.', 'success')
+    return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
