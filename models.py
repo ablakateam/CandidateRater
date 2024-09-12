@@ -9,6 +9,9 @@ class Candidate(db.Model):
     bio = db.Column(db.Text, nullable=False)
     contact = db.Column(db.String(100), nullable=False)
     photo = db.Column(db.String(100), nullable=False)
+    skills = db.Column(db.Text, nullable=True)
+    experience = db.Column(db.Text, nullable=True)
+    education = db.Column(db.Text, nullable=True)
     reviews = db.relationship('Review', backref='candidate', lazy=True)
 
     @property
