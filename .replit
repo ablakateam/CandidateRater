@@ -31,6 +31,18 @@ args = "Create Migration"
 task = "workflow.run"
 args = "Apply Migration"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Init Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Create New Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Apply New Migration"
+
 [[workflows.workflow]]
 name = "Run Flask App"
 author = "agent"
@@ -78,6 +90,39 @@ args = "export FLASK_APP=main.py && flask db migrate -m 'Add skills, experience,
 
 [[workflows.workflow]]
 name = "Apply Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export FLASK_APP=main.py && flask db upgrade"
+
+[[workflows.workflow]]
+name = "Init Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export FLASK_APP=main.py && flask db init"
+
+[[workflows.workflow]]
+name = "Create New Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export FLASK_APP=main.py && flask db migrate -m 'Add phone, website, and social_media to Candidate model'"
+
+[[workflows.workflow]]
+name = "Apply New Migration"
 author = "agent"
 
 [workflows.workflow.metadata]
