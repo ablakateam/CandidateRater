@@ -1,0 +1,29 @@
+/* Add any custom styles here */
+.rating-stars {
+    display: inline-flex;
+}
+
+.rating-stars input {
+    position: absolute;
+    left: -9999px;
+}
+
+.rating-stars label {
+    cursor: pointer;
+    padding: 0 0.1em;
+    font-size: 1.5rem;
+}
+
+.rating-stars label:hover,
+.rating-stars label:hover ~ label,
+.rating-stars input:checked ~ label {
+    color: #ffc107;
+}
+
+.rating-stars label:hover:before,
+.rating-stars label:hover ~ label:before,
+.rating-stars input:checked ~ label:before {
+    content: "★";
+    position: absolute;
+    color: #ffc107;
+}
