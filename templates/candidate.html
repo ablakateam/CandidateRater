@@ -36,7 +36,7 @@
             <div class="mb-4">
                 <label for="rating" class="block text-gray-700 font-bold mb-2">Rating</label>
                 <div class="rating-stars">
-                    {% for i in range(1, 6) %}
+                    {% for i in range(5, 0, -1) %}
                     <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
                     <label for="star{{ i }}">★</label>
                     {% endfor %}
@@ -87,9 +87,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const stars = document.querySelectorAll('.rating-stars input');
     const starsContainer = document.querySelector('.rating-stars');
 
+    function highlightStars(rating) {
+        stars.forEach((star, index) => {
+            if (index >= stars.length - rating) {
+                star.nextElementSibling.classList.add('text-yellow-400');
+            } else {
+                star.nextElementSibling.classList.remove('text-yellow-400');
+            }
+        });
+    }
+
+    function clearStarHighlights() {
+        stars.forEach(star => star.nextElementSibling.classList.remove('text-yellow-400'));
+    }
+
     starsContainer.addEventListener('mouseover', function(e) {
         if (e.target.tagName === 'LABEL') {
-            const rating = e.target.getAttribute('for').replace('star', '');
+            const rating = parseInt(e.target.getAttribute('for').replace('star', ''));
             highlightStars(rating);
         }
     });
@@ -97,22 +111,17 @@ document.addEventListener('DOMContentLoaded', function() {
     starsContainer.addEventListener('mouseout', function() {
         const selectedRating = document.querySelector('.rating-stars input:checked');
         if (selectedRating) {
-            highlightStars(selectedRating.value);
+            highlightStars(parseInt(selectedRating.value));
         } else {
             clearStarHighlights();
         }
     });
 
-    function highlightStars(rating) {
-        clearStarHighlights();
-        for (let i = 0; i < rating; i++) {
-            stars[i].nextElementSibling.classList.add('text-yellow-400');
-        }
-    }
-
-    function clearStarHighlights() {
-        stars.forEach(star => star.nextElementSibling.classList.remove('text-yellow-400'));
-    }
+    stars.forEach(star => {
+        star.addEventListener('change', function() {
+            highlightStars(parseInt(this.value));
+        });
+    });
 
     // Create rating distribution chart
     const ctx = document.getElementById('ratingChart').getContext('2d');

@@ -17,8 +17,6 @@
                 {% if 'admin_id' in session %}
                     <a href="{{ url_for('admin_dashboard') }}" class="text-white mr-4 hover:underline">Admin Dashboard</a>
                     <a href="{{ url_for('admin_logout') }}" class="text-white hover:underline">Logout</a>
-                {% else %}
-                    <a href="{{ url_for('admin_login') }}" class="text-white hover:underline">Admin Login</a>
                 {% endif %}
             </div>
         </div>
