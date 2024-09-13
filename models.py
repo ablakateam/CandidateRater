@@ -16,15 +16,17 @@ class Candidate(db.Model):
 
     @property
     def average_rating(self):
-        if len(self.reviews) == 0:
+        active_reviews = [review for review in self.reviews if review.status == 'active']
+        if len(active_reviews) == 0:
             return 0
-        return sum(review.rating for review in self.reviews) / len(self.reviews)
+        return sum(review.rating for review in active_reviews) / len(active_reviews)
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='active')  # 'active', 'paused', or 'deleted'
     candidate_id = db.Column(db.Integer, db.ForeignKey('candidate.id'), nullable=False)
 
 class Admin(db.Model):

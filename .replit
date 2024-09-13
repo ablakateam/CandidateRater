@@ -86,7 +86,7 @@ agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export FLASK_APP=main.py && flask db migrate -m 'Add skills, experience, and education to Candidate model'"
+args = "export FLASK_APP=main.py && flask db migrate -m 'Add status field to Review model'"
 
 [[workflows.workflow]]
 name = "Apply Migration"

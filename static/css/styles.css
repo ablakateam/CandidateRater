@@ -27,3 +27,20 @@
     position: absolute;
     color: #ffc107;
 }
+
+/* Updated styles for candidate image container */
+.candidate-image-container {
+    width: 100%;
+    padding-bottom: 100%; /* Creates a square aspect ratio */
+    position: relative;
+    overflow: hidden;
+}
+
+.candidate-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

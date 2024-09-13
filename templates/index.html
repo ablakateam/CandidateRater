@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="text-3xl font-bold mb-6">Candidate List</h1>
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Candidate List</h1>
+    <span id="countdown" class="text-lg font-semibold text-blue-600"></span>
+</div>
 
 <div class="mb-6">
     <input type="text" id="search" placeholder="Search candidates..." class="w-full p-2 border rounded" value="{{ search }}">
@@ -10,7 +13,9 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="candidates-container">
     {% for candidate in candidates.items %}
     <div class="bg-white p-6 rounded-lg shadow-md">
-        <img src="{{ url_for('static', filename='img/' + candidate.photo) }}" alt="{{ candidate.name }}" class="w-full h-48 object-cover mb-4 rounded">
+        <div class="candidate-image-container mb-4">
+            <img src="{{ url_for('static', filename='img/' + candidate.photo) }}" alt="{{ candidate.name }}" class="candidate-image">
+        </div>
         <h2 class="text-xl font-semibold mb-2">{{ candidate.name }}</h2>
         <div class="flex items-center mb-2">
             <div class="text-yellow-400 mr-2">
@@ -49,6 +54,23 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search');
     const candidatesContainer = document.getElementById('candidates-container');
+    const countdownElement = document.getElementById('countdown');
+    const targetDate = new Date('2024-11-05T00:00:00').getTime();
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const timeLeft = targetDate - now;
+        const secondsLeft = Math.floor(timeLeft / 1000);
+
+        if (timeLeft > 0) {
+            countdownElement.textContent = `November 5, 2024 - Countdown: ${secondsLeft} seconds`;
+            requestAnimationFrame(updateCountdown);
+        } else {
+            countdownElement.textContent = 'November 5, 2024 - Countdown finished!';
+        }
+    }
+
+    updateCountdown();
 
     let debounceTimer;
 
@@ -61,7 +83,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(candidates => {
                     candidatesContainer.innerHTML = candidates.map(candidate => `
                         <div class="bg-white p-6 rounded-lg shadow-md">
-                            <img src="/static/img/${candidate.photo}" alt="${candidate.name}" class="w-full h-48 object-cover mb-4 rounded">
+                            <div class="candidate-image-container mb-4">
+                                <img src="/static/img/${candidate.photo}" alt="${candidate.name}" class="candidate-image">
+                            </div>
                             <h2 class="text-xl font-semibold mb-2">${candidate.name}</h2>
                             <div class="flex items-center mb-2">
                                 <div class="text-yellow-400 mr-2">

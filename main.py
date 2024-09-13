@@ -34,7 +34,20 @@ def candidate(id):
         db.session.commit()
         flash('Your review has been submitted!', 'success')
         return redirect(url_for('candidate', id=id))
-    return render_template('candidate.html', candidate=candidate)
+    active_reviews = [review for review in candidate.reviews if review.status == 'active']
+    return render_template('candidate.html', candidate=candidate, reviews=active_reviews)
+
+@app.route('/api/search')
+def search_candidates():
+    query = request.args.get('q', '')
+    candidates = Candidate.query.filter(Candidate.name.ilike(f'%{query}%')).all()
+    return jsonify([{
+        'id': c.id,
+        'name': c.name,
+        'photo': c.photo,
+        'rating': c.average_rating,
+        'review_count': len([review for review in c.reviews if review.status == 'active'])
+    } for c in candidates])
 
 # Admin routes
 @app.route('/admin')
@@ -116,6 +129,27 @@ def admin_delete_candidate(id):
     db.session.commit()
     flash('Candidate deleted successfully.', 'success')
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/manage_reviews/<int:candidate_id>')
+def admin_manage_reviews(candidate_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+    candidate = Candidate.query.get_or_404(candidate_id)
+    return render_template('admin/manage_reviews.html', candidate=candidate)
+
+@app.route('/admin/update_review_status/<int:review_id>', methods=['POST'])
+def admin_update_review_status(review_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+    review = Review.query.get_or_404(review_id)
+    new_status = request.form['status']
+    if new_status in ['active', 'paused', 'deleted']:
+        review.status = new_status
+        db.session.commit()
+        flash('Review status updated successfully.', 'success')
+    else:
+        flash('Invalid status.', 'error')
+    return redirect(url_for('admin_manage_reviews', candidate_id=review.candidate_id))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

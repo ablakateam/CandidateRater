@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Manage Reviews for {{ candidate.name }}</h1>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="px-4 py-2 text-left">Rating</th>
+                    <th class="px-4 py-2 text-left">Comment</th>
+                    <th class="px-4 py-2 text-left">Date</th>
+                    <th class="px-4 py-2 text-left">Status</th>
+                    <th class="px-4 py-2 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in candidate.reviews %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ review.rating }}</td>
+                    <td class="px-4 py-2">{{ review.comment }}</td>
+                    <td class="px-4 py-2">{{ review.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td class="px-4 py-2">{{ review.status }}</td>
+                    <td class="px-4 py-2">
+                        <form action="{{ url_for('admin_update_review_status', review_id=review.id) }}" method="POST" class="inline">
+                            <select name="status" class="mr-2">
+                                <option value="active" {% if review.status == 'active' %}selected{% endif %}>Active</option>
+                                <option value="paused" {% if review.status == 'paused' %}selected{% endif %}>Paused</option>
+                                <option value="deleted" {% if review.status == 'deleted' %}selected{% endif %}>Deleted</option>
+                            </select>
+                            <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-6">
+        <a href="{{ url_for('admin_dashboard') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}
