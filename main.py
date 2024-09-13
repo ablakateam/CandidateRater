@@ -7,11 +7,15 @@ from models import db, Candidate, Review, Admin
 from utils import allowed_file, paginate
 import os
 from config import Config
+import logging
 
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
 migrate = Migrate(app, db)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 @app.route('/')
 def index():
@@ -21,6 +25,8 @@ def index():
     if search:
         query = query.filter(Candidate.name.ilike(f'%{search}%'))
     candidates = paginate(query.order_by(Candidate.name), page, per_page=6)
+    
+    logging.info(f"Displaying index page with {len(candidates.items)} candidates")
     return render_template('index.html', candidates=candidates, search=search)
 
 @app.route('/candidate/<int:id>', methods=['GET', 'POST'])
@@ -29,33 +35,19 @@ def candidate(id):
     if request.method == 'POST':
         rating = int(request.form['rating'])
         comment = request.form['comment']
-        review = Review(rating=rating, comment=comment, candidate=candidate)
+        review = Review(rating=rating, comment=comment, candidate_id=candidate.id)
         db.session.add(review)
         db.session.commit()
+        logging.info(f"New review added for Candidate {candidate.id} ({candidate.name}) - Rating: {rating}")
+        
+        candidate.recalculate_average_rating()
+        logging.info(f"Recalculated average rating for Candidate {candidate.id} ({candidate.name}) - New average: {candidate.average_rating}")
+        
         flash('Your review has been submitted!', 'success')
         return redirect(url_for('candidate', id=id))
-    active_reviews = [review for review in candidate.reviews if review.status == 'active']
-    return render_template('candidate.html', candidate=candidate, reviews=active_reviews)
-
-@app.route('/api/search')
-def search_candidates():
-    query = request.args.get('q', '')
-    candidates = Candidate.query.filter(Candidate.name.ilike(f'%{query}%')).all()
-    return jsonify([{
-        'id': c.id,
-        'name': c.name,
-        'photo': c.photo,
-        'rating': c.average_rating,
-        'review_count': len([review for review in c.reviews if review.status == 'active'])
-    } for c in candidates])
-
-# Admin routes
-@app.route('/admin')
-def admin_dashboard():
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    candidates = Candidate.query.all()
-    return render_template('admin/dashboard.html', candidates=candidates)
+    
+    logging.info(f"Displaying candidate page for Candidate {candidate.id} ({candidate.name})")
+    return render_template('candidate.html', candidate=candidate)
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -76,6 +68,13 @@ def admin_logout():
     flash('Logged out successfully.', 'success')
     return redirect(url_for('index'))
 
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+    candidates = Candidate.query.all()
+    return render_template('admin/dashboard.html', candidates=candidates)
+
 @app.route('/admin/add_candidate', methods=['GET', 'POST'])
 def admin_add_candidate():
     if 'admin_id' not in session:
@@ -94,8 +93,10 @@ def admin_add_candidate():
             new_candidate = Candidate(name=name, bio=bio, contact=contact, photo=filename, phone=phone, website=website, social_media=social_media)
             db.session.add(new_candidate)
             db.session.commit()
-            flash('New candidate added successfully.', 'success')
+            flash('New candidate added successfully!', 'success')
             return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Invalid file type. Please upload an image.', 'error')
     return render_template('admin/add_candidate.html')
 
 @app.route('/admin/edit_candidate/<int:id>', methods=['GET', 'POST'])
@@ -116,7 +117,7 @@ def admin_edit_candidate(id):
             photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             candidate.photo = filename
         db.session.commit()
-        flash('Candidate updated successfully.', 'success')
+        flash('Candidate updated successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
     return render_template('admin/edit_candidate.html', candidate=candidate)
 
@@ -137,19 +138,31 @@ def admin_manage_reviews(candidate_id):
     candidate = Candidate.query.get_or_404(candidate_id)
     return render_template('admin/manage_reviews.html', candidate=candidate)
 
-@app.route('/admin/update_review_status/<int:review_id>', methods=['POST'])
-def admin_update_review_status(review_id):
+@app.route('/admin/delete_review/<int:review_id>', methods=['POST'])
+def admin_delete_review(review_id):
     if 'admin_id' not in session:
         return redirect(url_for('admin_login'))
     review = Review.query.get_or_404(review_id)
-    new_status = request.form['status']
-    if new_status in ['active', 'paused', 'deleted']:
-        review.status = new_status
-        db.session.commit()
-        flash('Review status updated successfully.', 'success')
-    else:
-        flash('Invalid status.', 'error')
-    return redirect(url_for('admin_manage_reviews', candidate_id=review.candidate_id))
+    candidate = review.candidate
+    db.session.delete(review)
+    db.session.commit()
+    
+    candidate.recalculate_average_rating()
+    
+    flash('Review deleted successfully.', 'success')
+    return redirect(url_for('admin_manage_reviews', candidate_id=candidate.id))
+
+@app.route('/api/search')
+def api_search():
+    query = request.args.get('q', '')
+    candidates = Candidate.query.filter(Candidate.name.ilike(f'%{query}%')).all()
+    return jsonify([{
+        'id': c.id,
+        'name': c.name,
+        'photo': c.photo,
+        'average_rating': c.average_rating,
+        'reviews': len(c.reviews)
+    } for c in candidates])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
