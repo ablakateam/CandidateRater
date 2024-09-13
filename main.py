@@ -78,6 +78,53 @@ def admin_dashboard():
     candidates = Candidate.query.all()
     return render_template('admin/dashboard.html', candidates=candidates)
 
+@app.route('/admin/add_candidate', methods=['GET', 'POST'])
+def admin_add_candidate():
+    if 'admin_id' not in session:
+        flash('Please log in to access this page', 'error')
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        name = request.form['name']
+        bio = request.form['bio']
+        contact = request.form['contact']
+        phone = request.form['phone']
+        website = request.form['website']
+        social_media = request.form['social_media']
+        
+        if 'photo' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+        
+        file = request.files['photo']
+        if file.filename == '':
+            flash('No selected file', 'error')
+            return redirect(request.url)
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            
+            new_candidate = Candidate(
+                name=name,
+                bio=bio,
+                contact=contact,
+                phone=phone,
+                website=website,
+                social_media=social_media,
+                photo=filename
+            )
+            
+            db.session.add(new_candidate)
+            db.session.commit()
+            
+            flash('New candidate added successfully!', 'success')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Invalid file type', 'error')
+    
+    return render_template('admin/add_candidate.html')
+
 # ... (rest of the code remains unchanged)
 
 if __name__ == '__main__':
