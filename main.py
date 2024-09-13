@@ -51,6 +51,33 @@ def candidate(id):
     logging.info(f"Displaying candidate page for Candidate {candidate.id} ({candidate.name})")
     return render_template('candidate.html', candidate=candidate)
 
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        admin = Admin.query.filter_by(username=username).first()
+        if admin and check_password_hash(admin.password, password):
+            session['admin_id'] = admin.id
+            flash('Logged in successfully!', 'success')
+            return redirect(url_for('admin_dashboard'))
+        flash('Invalid username or password', 'error')
+    return render_template('admin/login.html')
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_id', None)
+    flash('Logged out successfully!', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if 'admin_id' not in session:
+        flash('Please log in to access the admin dashboard', 'error')
+        return redirect(url_for('admin_login'))
+    candidates = Candidate.query.all()
+    return render_template('admin/dashboard.html', candidates=candidates)
+
 # ... (rest of the code remains unchanged)
 
 if __name__ == '__main__':
