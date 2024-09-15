@@ -14,6 +14,7 @@
             <a href="{{ url_for('index') }}" class="text-white text-2xl font-bold">Candidate Rater</a>
             <div>
                 <a href="{{ url_for('index') }}" class="text-white mr-4 hover:underline">Home</a>
+                
                 {% if 'admin_id' in session %}
                     <a href="{{ url_for('admin_dashboard') }}" class="text-white mr-4 hover:underline">Admin Dashboard</a>
                     <a href="{{ url_for('admin_logout') }}" class="text-white hover:underline">Logout</a>
@@ -41,7 +42,7 @@
     <footer class="bg-gray-200 p-4 mt-8">
         <div class="container mx-auto text-center text-gray-600">
             <p>&copy; 2024 Candidate Rating Platform. All rights reserved.</p>
-            <p class="mt-2">Developed by Your Company Name | <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a> | <a href="#" class="text-blue-600 hover:underline">Terms of Service</a></p>
+            <p class="mt-2">Idea by <a href="https://www.ablaka.com" class="text-blue-600 hover:underline">Ablaka Digital Agency </a> </p>
         </div>
     </footer>
 

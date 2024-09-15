@@ -15,7 +15,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for review in candidate.reviews %}
+                {% for review in reviews %}
                 <tr class="border-b">
                     <td class="px-4 py-2">{{ review.rating }}</td>
                     <td class="px-4 py-2">{{ review.comment }}</td>
@@ -35,4 +35,15 @@
         <a href="{{ url_for('admin_dashboard') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Back to Dashboard</a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error('JavaScript error:', message, 'at', source, lineno, colno);
+        // You can send this error to your server for logging if needed
+    };
+
+    // Add any other JavaScript functionality for the manage reviews page here
+</script>
 {% endblock %}
