@@ -107,7 +107,6 @@ def admin_add_candidate():
         website = request.form['website']
         social_media = request.form['social_media']
         btc_address = request.form['btc_address']
-        doge_address = request.form['doge_address']
         
         if 'photo' not in request.files:
             flash('No file part', 'error')
@@ -130,8 +129,7 @@ def admin_add_candidate():
                 website=website,
                 social_media=social_media,
                 photo=filename,
-                btc_address=btc_address,
-                doge_address=doge_address
+                btc_address=btc_address
             )
             
             db.session.add(new_candidate)
@@ -160,7 +158,6 @@ def admin_edit_candidate(id):
         candidate.website = request.form['website']
         candidate.social_media = request.form['social_media']
         candidate.btc_address = request.form['btc_address']
-        candidate.doge_address = request.form['doge_address']
         
         if 'photo' in request.files:
             file = request.files['photo']

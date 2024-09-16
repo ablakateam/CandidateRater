@@ -15,6 +15,7 @@
                     <th class="px-4 py-2 text-left">Name</th>
                     <th class="px-4 py-2 text-left">Contact</th>
                     <th class="px-4 py-2 text-left">Average Rating</th>
+                    <th class="px-4 py-2 text-left">BTC Address</th>
                     <th class="px-4 py-2 text-left">Actions</th>
                 </tr>
             </thead>
@@ -37,6 +38,10 @@
                         </div>
                     </td>
                     <td class="px-4 py-2">
+                        {{ candidate.btc_address }}
+                        <div id="btc-qr-{{ candidate.id }}" class="mt-2"></div>
+                    </td>
+                    <td class="px-4 py-2">
                         <a href="{{ url_for('admin_edit_candidate', id=candidate.id) }}" class="text-blue-500 hover:underline mr-2">Edit</a>
                         <form action="{{ url_for('admin_delete_candidate', id=candidate.id) }}" method="POST" class="inline">
                             <button type="submit" class="text-red-500 hover:underline" onclick="return confirm('Are you sure you want to delete this candidate?')">Delete</button>
@@ -49,4 +54,20 @@
         </table>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% for candidate in candidates %}
+        if ('{{ candidate.btc_address }}') {
+            new QRCode(document.getElementById("btc-qr-{{ candidate.id }}"), {
+                text: "{{ candidate.btc_address }}",
+                width: 128,
+                height: 128
+            });
+        }
+    {% endfor %}
+});
+</script>
 {% endblock %}
