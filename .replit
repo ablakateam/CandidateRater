@@ -51,6 +51,14 @@ args = "Add Sample Wallets"
 task = "workflow.run"
 args = "Check Candidates"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Apply Migration Again"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Add Sample Wallets Again"
+
 [[workflows.workflow]]
 name = "Run Flask App"
 author = "agent"
@@ -160,7 +168,29 @@ agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -c \"from main import app, db; from models import Candidate; with app.app_context(): candidates = Candidate.query.all(); print(f'Total candidates: {len(candidates)}'); for candidate in candidates[:5]: print(f'{candidate.name}: BTC: {candidate.btc_address}, DOGE: {candidate.doge_address}')\""
+args = "python check_candidates.py"
+
+[[workflows.workflow]]
+name = "Apply Migration Again"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export FLASK_APP=main.py && flask db upgrade"
+
+[[workflows.workflow]]
+name = "Add Sample Wallets Again"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python add_sample_wallets.py"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
