@@ -1,109 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold">Candidate List</h1>
-    <span id="countdown" class="text-lg font-semibold text-blue-600"></span>
+<div class='container mx-auto px-4 py-8'>
+    <h1 class='text-3xl font-bold mb-6'>Support Our Project</h1>
+    <p class='mb-4'>Your support helps us maintain and improve the Candidate Rating Platform. By contributing, you're helping us create a more transparent and efficient way for users to rate and review candidates.</p>
+    <p class='mb-4'>If you find our platform valuable, please consider supporting us:</p>
+    <a href='https://buymeacoffee.com/ablaka' class='bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 inline-block'>Buy Me a Coffee</a>
+    <p class='mt-4'>Your support, no matter how small, makes a big difference in helping us continue to provide and improve this service. Thank you for being a part of our community!</p>
 </div>
-
-<div class="mb-6">
-    <input type="text" id="search" placeholder="Search candidates..." class="w-full p-2 border rounded" value="{{ search }}">
-</div>
-
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="candidates-container">
-    {% for candidate in candidates.items %}
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <div class="candidate-image-container mb-4">
-            <img src="{{ url_for('static', filename='img/' + candidate.photo) }}" alt="{{ candidate.name }}" class="candidate-image">
-        </div>
-        <h2 class="text-xl font-semibold mb-2">{{ candidate.name }}</h2>
-        <div class="flex items-center mb-2">
-            <div class="text-yellow-400 mr-2">
-                {% set rating = candidate.average_rating|default(0)|float %}
-                {% for _ in range(rating|round|int) %}
-                    <svg class="w-5 h-5 inline-block" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                    </svg>
-                {% endfor %}
-            </div>
-            <span class="text-gray-600">{{ "%.1f"|format(rating) }} ({{ candidate.reviews|length }} reviews)</span>
-        </div>
-        <a href="{{ url_for('candidate', id=candidate.id) }}" class="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Profile</a>
-    </div>
-    {% endfor %}
-</div>
-
-<div class="mt-6 flex justify-between items-center">
-    {% if candidates.has_prev %}
-    <a href="{{ url_for('index', page=candidates.page-1, search=search) }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Previous</a>
-    {% else %}
-    <span></span>
-    {% endif %}
-    
-    <span class="text-gray-600">Page {{ candidates.page }} of {{ candidates.pages }}</span>
-    
-    {% if candidates.has_next %}
-    <a href="{{ url_for('index', page=candidates.page+1, search=search) }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Next</a>
-    {% else %}
-    <span></span>
-    {% endif %}
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('search');
-    const candidatesContainer = document.getElementById('candidates-container');
-    const countdownElement = document.getElementById('countdown');
-    const targetDate = new Date('2024-11-05T00:00:00').getTime();
-
-    function updateCountdown() {
-        const now = new Date().getTime();
-        const timeLeft = targetDate - now;
-        const secondsLeft = Math.floor(timeLeft / 1000);
-
-        if (timeLeft > 0) {
-            countdownElement.textContent = `November 5, 2024 - Countdown: ${secondsLeft} seconds`;
-            requestAnimationFrame(updateCountdown);
-        } else {
-            countdownElement.textContent = 'November 5, 2024 - Countdown finished!';
-        }
-    }
-
-    updateCountdown();
-
-    let debounceTimer;
-
-    searchInput.addEventListener('input', function() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            const query = this.value;
-            fetch(`/api/search?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(candidates => {
-                    candidatesContainer.innerHTML = candidates.map(candidate => `
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <div class="candidate-image-container mb-4">
-                                <img src="/static/img/${candidate.photo}" alt="${candidate.name}" class="candidate-image">
-                            </div>
-                            <h2 class="text-xl font-semibold mb-2">${candidate.name}</h2>
-                            <div class="flex items-center mb-2">
-                                <div class="text-yellow-400 mr-2">
-                                    ${Array(Math.floor(candidate.average_rating || 0)).fill().map(() => `
-                                        <svg class="w-5 h-5 inline-block" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                        </svg>
-                                    `).join('')}
-                                </div>
-                                <span class="text-gray-600">${(candidate.average_rating || 0).toFixed(1)} (${candidate.reviews} reviews)</span>
-                            </div>
-                            <a href="/candidate/${candidate.id}" class="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Profile</a>
-                        </div>
-                    `).join('');
-                });
-        }, 300);
-    });
-});
-</script>
 {% endblock %}

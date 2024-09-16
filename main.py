@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -89,6 +89,8 @@ def admin_add_candidate():
         phone = request.form['phone']
         website = request.form['website']
         social_media = request.form['social_media']
+        btc_address = request.form['btc_address']
+        doge_address = request.form['doge_address']
         
         if 'photo' not in request.files:
             flash('No file part', 'error')
@@ -110,7 +112,9 @@ def admin_add_candidate():
                 phone=phone,
                 website=website,
                 social_media=social_media,
-                photo=filename
+                photo=filename,
+                btc_address=btc_address,
+                doge_address=doge_address
             )
             
             db.session.add(new_candidate)
@@ -138,6 +142,8 @@ def admin_edit_candidate(id):
         candidate.phone = request.form['phone']
         candidate.website = request.form['website']
         candidate.social_media = request.form['social_media']
+        candidate.btc_address = request.form['btc_address']
+        candidate.doge_address = request.form['doge_address']
         
         if 'photo' in request.files:
             file = request.files['photo']
@@ -208,6 +214,26 @@ def admin_delete_review(review_id):
         flash('An error occurred while deleting the review', 'error')
     
     return redirect(url_for('admin_manage_reviews', candidate_id=candidate.id))
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/support')
+def support():
+    return render_template('support.html')
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        message = request.form['message']
+        # Here you would typically send an email or save the message to a database
+        # For now, we'll just flash a message
+        flash('Your message has been sent. We will get back to you soon!', 'success')
+        return redirect(url_for('contact'))
+    return render_template('contact.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

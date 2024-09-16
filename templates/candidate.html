@@ -8,7 +8,7 @@
             <div class="flex items-center mb-4">
                 <img src="{{ url_for('static', filename='img/' + candidate.photo) }}" alt="{{ candidate.name }}" class="w-24 h-24 object-cover rounded-full mr-4">
                 <div>
-                    <h1 class="text-3xl font-bold">{{ candidate.name }}</h1>
+                    <h1 class='text-3xl font-bold'><a href='https://www.google.com/search?q={{ candidate.name|urlencode }}' target='_blank' class='hover:underline'>{{ candidate.name }}</a></h1>
                     <div class="flex items-center">
                         <div class="text-yellow-400 mr-2">
                             {% for _ in range(candidate.average_rating|round|int) %}

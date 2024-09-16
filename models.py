@@ -15,6 +15,8 @@ class Candidate(db.Model):
     social_media = db.Column(db.Text, nullable=True)
     reviews = db.relationship('Review', backref='candidate', lazy=True)
     average_rating = db.Column(db.Float, default=0.0)
+    btc_address = db.Column(db.String(100), nullable=True)
+    doge_address = db.Column(db.String(100), nullable=True)
 
     def recalculate_average_rating(self):
         reviews = self.reviews
