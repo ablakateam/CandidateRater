@@ -59,6 +59,14 @@ args = "Apply Migration Again"
 task = "workflow.run"
 args = "Add Sample Wallets Again"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Check Database Schema"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Check DB Schema with FLASK_APP"
+
 [[workflows.workflow]]
 name = "Run Flask App"
 author = "agent"
@@ -102,7 +110,7 @@ agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export FLASK_APP=main.py && flask db migrate -m 'Add youtube_snippet to Candidate model'"
+args = "export FLASK_APP=main.py && flask db migrate -m 'Add btc_address to Candidate model'"
 
 [[workflows.workflow]]
 name = "Apply Migration"
@@ -191,6 +199,28 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python add_sample_wallets.py"
+
+[[workflows.workflow]]
+name = "Check Database Schema"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db current"
+
+[[workflows.workflow]]
+name = "Check DB Schema with FLASK_APP"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export FLASK_APP=main.py && flask db current"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
