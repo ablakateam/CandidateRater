@@ -93,6 +93,52 @@ def admin_dashboard():
     candidates = Candidate.query.all()
     return render_template('admin/dashboard.html', candidates=candidates)
 
+@app.route('/admin/manage_users')
+def admin_manage_users():
+    if 'admin_id' not in session:
+        flash('Please log in to access this page', 'error')
+        return redirect(url_for('admin_login'))
+    admin_users = Admin.query.all()
+    return render_template('admin/manage_users.html', admin_users=admin_users)
+
+@app.route('/admin/add_user', methods=['GET', 'POST'])
+def admin_add_user():
+    if 'admin_id' not in session:
+        flash('Please log in to access this page', 'error')
+        return redirect(url_for('admin_login'))
+    
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        existing_user = Admin.query.filter_by(username=username).first()
+        if existing_user:
+            flash('Username already exists', 'error')
+        else:
+            hashed_password = generate_password_hash(password)
+            new_admin = Admin(username=username, password=hashed_password)
+            db.session.add(new_admin)
+            db.session.commit()
+            flash('New admin user added successfully!', 'success')
+            return redirect(url_for('admin_manage_users'))
+    
+    return render_template('admin/add_user.html')
+
+@app.route('/admin/delete_user/<int:id>', methods=['POST'])
+def admin_delete_user(id):
+    if 'admin_id' not in session:
+        flash('Please log in to access this page', 'error')
+        return redirect(url_for('admin_login'))
+    
+    admin = Admin.query.get_or_404(id)
+    if admin.id == session['admin_id']:
+        flash('You cannot delete your own account', 'error')
+    else:
+        db.session.delete(admin)
+        db.session.commit()
+        flash('Admin user deleted successfully!', 'success')
+    return redirect(url_for('admin_manage_users'))
+
 @app.route('/admin/add_candidate', methods=['GET', 'POST'])
 def admin_add_candidate():
     if 'admin_id' not in session:
